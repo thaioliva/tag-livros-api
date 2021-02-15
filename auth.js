@@ -24,10 +24,6 @@ export default app => {
 
   passport.use(strategy);
 
-  passport.serializeUser(function(user, done) {
-    done(null, user.id);
-  });
-
   return {
     initialize: () => passport.initialize(),
     authenticate: () => passport.authenticate('jwt', { session: false }),

@@ -1,5 +1,10 @@
 import HttpStatus from 'http-status';
 import Users from '../models/users';
+import redis from 'redis';
+import cacher from 'sequelize-redis-cache';
+import database from '../config/datasource';
+
+const rc = redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST);
 
 const defaultResponse = (data, statusCode = HttpStatus.OK) => ({
   data,
@@ -15,14 +20,33 @@ class BooksController {
     this.Books = Books;
   }
 
-  async getAll(query) {
-    const criteria = (!!query) ? { where : { userId: query.userId } } : {};
+  async getAllCache(query) {
+    const criteria = (!!query) ? { where: { userId: query.userId } } : {};
     const amount = await this.Books.count(criteria);
 
     criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
     criteria.offset = (query?.offset) ? query?.offset : 0;
     criteria.limit = (query?.limit) ? query?.limit : 10;
-   
+    
+    const db = cacher(database, rc)
+      .model('Books')
+      .ttl(5);
+
+    return db.findAll({ where: { userId: query.userId } })
+      .then(result => {
+        const response = { ...result, total: amount };
+        return defaultResponse(response);
+      })
+      .catch(error => errorResponse(error.message));
+  }
+
+  async getAll(query) {
+    const criteria = (!!query) ? { where : { userId: query.userId } } : {};
+    const amount = await this.Books.count(criteria);
+    criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
+    criteria.offset = (query?.offset) ? query?.offset : 0;
+    criteria.limit = (query?.limit) ? query?.limit : 10;
+
     return this.Books.findAll(criteria)
       .then(result => { 
         const response = { ...result, total: amount };
@@ -49,7 +73,7 @@ class BooksController {
       ...data,
       userId: id
     }
-    return this.Books.create(book, { include: [ Users ] })
+    return this.Books.create(book, { include: [Users] })
       .then(result => defaultResponse(result, HttpStatus.CREATED))
       .catch(error => errorResponse(error.message, HttpStatus.UNPROCESSABLE_ENTITY));
   }
