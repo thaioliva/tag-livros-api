@@ -1,4 +1,5 @@
 import HttpStatus from 'http-status';
+import Users from '../models/users';
 
 const defaultResponse = (data, statusCode = HttpStatus.OK) => ({
   data,
@@ -14,8 +15,10 @@ class BooksController {
     this.Books = Books;
   }
 
-  getAll() {
-    return this.Books.findAll({})
+  getAll(query) {
+    const criteria = (!!query) ? { where : query } : {} ;
+    criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
+    return this.Books.findAll(criteria)
       .then(result => defaultResponse(result))
       .catch(error => errorResponse(error.message));
   }
@@ -28,8 +31,17 @@ class BooksController {
       .catch(error => errorResponse(error.message));
   }
 
-  create(data) {
-    return this.Books.create(data)
+  isValid(data) {
+    const isValid = this.Books.isValid(data);
+    return { isValid: isValid, status: HttpStatus.OK, message: 'Release date must be greater than 2000' };
+  }
+
+  create(data, id) {
+    const book = {
+      ...data,
+      userId: id
+    }
+    return this.Books.create(book, { include: [ Users ] })
       .then(result => defaultResponse(result, HttpStatus.CREATED))
       .catch(error => errorResponse(error.message, HttpStatus.UNPROCESSABLE_ENTITY));
   }

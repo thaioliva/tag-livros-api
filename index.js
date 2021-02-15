@@ -5,8 +5,7 @@ import database from './config/datasource';
 app.listen(process.env.PORT, () => {
   (async () => {
     try {
-      const resultado = await database.sync();
-      console.log(resultado);
+      await database.sync();
     } catch (error) {
       console.log(error);
     }

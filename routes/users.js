@@ -1,47 +1,43 @@
-import BooksController from '../controllers/books';
+import UsersController from '../controllers/users';
 
 export default (app) => {
-  const booksController = new BooksController(app.models.Books);
-  app.route('/books')
+  const usersController = new UsersController(app.models.Users);
+  app.route('/users')
     .all(app.auth.authenticate())
     .get((req, res) => {
-      booksController.getAll({ userId: app.auth.userId() })
+      usersController.getAll()
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);
         });
     })
+  app.route('/public/user')
     .post((req, res) => {
-      const isValid = booksController.isValid(req.body);
-      if(!isValid.isValid) {
-        res.status(isValid.status);
-        res.json({ message: isValid.message });
-      };
-      booksController.create(req.body, app.auth.userId())
+      usersController.create(req.body)
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);
         });
     });
 
-  app.route('/books/:id')
+  app.route('/users/:id')
     .all(app.auth.authenticate())
     .get((req, res) => {
-      booksController.getById(req.params)
+      usersController.getById(req.params)
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);
         });
     })
     .put((req, res) => {
-      booksController.update(req.body, req.params)
+      usersController.update(req.body, req.params)
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);
         });
     })
     .delete((req, res) => {
-      booksController.delete(req.params)
+      usersController.delete(req.params)
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);
