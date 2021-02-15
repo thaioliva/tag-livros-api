@@ -18,6 +18,8 @@ class BooksController {
   getAll(query) {
     const criteria = (!!query) ? { where : query } : {} ;
     criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
+    criteria.offset = (query?.offset) ? query?.offset : 0;
+    criteria.limit = (query?.limit) ? query?.limit : 1;
     return this.Books.findAll(criteria)
       .then(result => defaultResponse(result))
       .catch(error => errorResponse(error.message));
