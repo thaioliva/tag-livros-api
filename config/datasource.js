@@ -20,4 +20,5 @@ const sequelize = new Sequelize(
   config.params
 );
 
+
 module.exports = sequelize;
