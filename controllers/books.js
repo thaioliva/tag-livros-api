@@ -16,10 +16,9 @@ class BooksController {
   }
 
   async getAll(query) {
-    const criteria = (!!query) ? { where : { userId: query.userId } } : {} ;
+    const criteria = (!!query) ? { where : { userId: query.userId } } : {};
     const amount = await this.Books.count(criteria);
 
-    console.log(query);
     criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
     criteria.offset = (query?.offset) ? query?.offset : 0;
     criteria.limit = (query?.limit) ? query?.limit : 10;
