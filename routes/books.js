@@ -5,7 +5,7 @@ export default (app) => {
   app.route('/books')
     .all(app.auth.authenticate())
     .get((req, res) => {
-      booksController.getAll({ userId: app.auth.userId() })
+      booksController.getAll({ ...req.query, userId: app.auth.userId() })
         .then(response => {
           res.status(response.statusCode);
           res.json(response.data);

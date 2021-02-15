@@ -15,13 +15,20 @@ class BooksController {
     this.Books = Books;
   }
 
-  getAll(query) {
-    const criteria = (!!query) ? { where : query } : {} ;
+  async getAll(query) {
+    const criteria = (!!query) ? { where : { userId: query.userId } } : {} ;
+    const amount = await this.Books.count(criteria);
+
+    console.log(query);
     criteria.attributes = ['title', 'isbn', 'pages', 'abstract', 'authors', 'release_date'];
     criteria.offset = (query?.offset) ? query?.offset : 0;
-    criteria.limit = (query?.limit) ? query?.limit : 1;
+    criteria.limit = (query?.limit) ? query?.limit : 10;
+   
     return this.Books.findAll(criteria)
-      .then(result => defaultResponse(result))
+      .then(result => { 
+        const response = { ...result, total: amount };
+        return defaultResponse(response);
+      })
       .catch(error => errorResponse(error.message));
   }
 
